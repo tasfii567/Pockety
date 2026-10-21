@@ -1,16 +1,16 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 
-const CUR = process.env.NEXT_PUBLIC_CURRENCY || '$';
+const DEFAULT_CUR = process.env.NEXT_PUBLIC_CURRENCY || '$';
+const CURRENCIES = [['$', '$ Dollar'], ['৳', '৳ Taka']];
 const CATS = {
   spent: ['🍔 Food', '🚌 Travel', '🛍️ Shopping', '🏠 Bills', '🎬 Fun', '💊 Health', '✨ Other'],
   earned: ['💼 Salary', '💸 Side gig', '🎁 Gift', '✨ Other'],
-  saved: [' Piggy bank', '🚨 Emergency', '🎯 Goal']
+  saved: ['Piggy bank', '🚨 Emergency', '🎯 Goal']
 };
-const KINDS = [['spent', ' Spent'], ['earned', ' Earned'], ['saved', ' Saved']];
+const KINDS = [['spent', '💸 Spent'], ['earned', '💰 Earned'], ['saved', 'Saved']];
 const COLOR = { spent: 'var(--coral)', earned: 'var(--mint)', saved: 'var(--grape)' };
 const today = () => new Date().toLocaleDateString('en-CA');
-const money = (n) => CUR + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 export default function Home() {
   const [ready, setReady] = useState(false);
@@ -21,9 +21,13 @@ export default function Home() {
   const [f, setF] = useState({ kind: 'spent', amount: '', category: CATS.spent[0], note: '', day: today() });
   const [rem, setRem] = useState({ on: false, time: '20:00' });
   const [now, setNow] = useState(new Date());
+  const [cur, setCur] = useState(DEFAULT_CUR);
+  const money = (n) => cur + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  function chooseCur(c) { setCur(c); localStorage.setItem('pp-cur', c); }
 
   useEffect(() => {
     try { setRows(JSON.parse(localStorage.getItem('pp-rows')) || []); setGoal(Number(localStorage.getItem('pp-goal')) || 0); } catch {}
+    setCur(localStorage.getItem('pp-cur') || DEFAULT_CUR);
     setLoaded(true);
     try { setRem(JSON.parse(localStorage.getItem('pp-rem')) || { on: false, time: '20:00' }); } catch {}
     setReady(true);
@@ -46,7 +50,7 @@ export default function Home() {
   }
   function del(id) { setRows(rows.filter((r) => r.id !== id)); }
   function editGoal() {
-    const v = parseFloat(prompt(`Monthly savings goal (${CUR})`, goal || ''));
+    const v = parseFloat(prompt(`Monthly savings goal (${cur})`, goal || ''));
     if (v >= 0) setGoal(v);
   }
   function saveRem(r) { setRem(r); localStorage.setItem('pp-rem', JSON.stringify(r)); }
@@ -83,7 +87,7 @@ export default function Home() {
     localStorage.setItem('pp-notified', today());
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     const o = { body: 'Take 10 seconds to log today’s money.', icon: '/icon.svg' };
-    navigator.serviceWorker?.ready.then((r) => r.showNotification('Pocket Pop', o)).catch(() => new Notification('Pocket Pop 🐷', o));
+    navigator.serviceWorker?.ready.then((r) => r.showNotification('Pocket Pop', o)).catch(() => new Notification('Pocket Pop', o));
   }, [due]);
 
   if (!ready) return null;
@@ -91,7 +95,7 @@ export default function Home() {
   return (
     <main>
       <section className="hero">
-        <div className="row between"><h1>Pocket Pop </h1><span className="pill">🔥 {s.streak}-day streak</span></div>
+        <div className="row between"><h1>Pocket Pop</h1><span className="pill">🔥 {s.streak}-day streak</span></div>
         <p style={{ marginTop: 18 }}><small>Left to spend this month</small></p>
         <div className="big">{money(s.left)}</div>
         <p style={{ marginTop: 8 }}><small>{s.perDay ? `≈ ${money(s.perDay)} a day for the rest of the month` : 'Add your income to see a daily allowance'}</small></p>
@@ -114,7 +118,7 @@ export default function Home() {
               onClick={() => setF({ ...f, kind: k, category: CATS[k][0] })}>{label}</button>
           ))}
         </div>
-        <input className="amount" inputMode="decimal" placeholder={`${CUR}0.00`} value={f.amount}
+        <input className="amount" inputMode="decimal" placeholder={`${cur}0.00`} value={f.amount}
           onChange={(e) => setF({ ...f, amount: e.target.value })} aria-label="Amount" />
         <div className="chips">
           {CATS[f.kind].map((c) => (
@@ -145,6 +149,15 @@ export default function Home() {
           <div className="cat" key={c}><span>{c}</span><div className="bar"><i style={{ width: (v / s.spent) * 100 + '%' }} /></div><span>{money(v)}</span></div>
         )) : <p className="muted" style={{ marginTop: 8 }}>No spending logged this month yet.</p>}
         <p className="muted" style={{ marginTop: 14 }}>Spent today: <b style={{ color: 'var(--ink)' }}>{money(s.todaySpent)}</b></p>
+      </section>
+
+      <section className="card">
+        <h2>Currency</h2>
+        <div className="chips" style={{ marginTop: 12 }}>
+          {CURRENCIES.map(([c, label]) => (
+            <button key={c} className="chip" aria-pressed={cur === c} onClick={() => chooseCur(c)}>{label}</button>
+          ))}
+        </div>
       </section>
 
       <section className="card">
