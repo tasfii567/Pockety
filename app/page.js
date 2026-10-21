@@ -5,9 +5,9 @@ const CUR = process.env.NEXT_PUBLIC_CURRENCY || '$';
 const CATS = {
   spent: ['🍔 Food', '🚌 Travel', '🛍️ Shopping', '🏠 Bills', '🎬 Fun', '💊 Health', '✨ Other'],
   earned: ['💼 Salary', '💸 Side gig', '🎁 Gift', '✨ Other'],
-  saved: ['🐷 Piggy bank', '🚨 Emergency', '🎯 Goal']
+  saved: [' Piggy bank', '🚨 Emergency', '🎯 Goal']
 };
-const KINDS = [['spent', '💸 Spent'], ['earned', '💰 Earned'], ['saved', '🐷 Saved']];
+const KINDS = [['spent', ' Spent'], ['earned', ' Earned'], ['saved', ' Saved']];
 const COLOR = { spent: 'var(--coral)', earned: 'var(--mint)', saved: 'var(--grape)' };
 const today = () => new Date().toLocaleDateString('en-CA');
 const money = (n) => CUR + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -83,7 +83,7 @@ export default function Home() {
     localStorage.setItem('pp-notified', today());
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     const o = { body: 'Take 10 seconds to log today’s money.', icon: '/icon.svg' };
-    navigator.serviceWorker?.ready.then((r) => r.showNotification('Pocket Pop 🐷', o)).catch(() => new Notification('Pocket Pop 🐷', o));
+    navigator.serviceWorker?.ready.then((r) => r.showNotification('Pocket Pop', o)).catch(() => new Notification('Pocket Pop 🐷', o));
   }, [due]);
 
   if (!ready) return null;
@@ -91,7 +91,7 @@ export default function Home() {
   return (
     <main>
       <section className="hero">
-        <div className="row between"><h1>Pocket Pop 🐷</h1><span className="pill">🔥 {s.streak}-day streak</span></div>
+        <div className="row between"><h1>Pocket Pop </h1><span className="pill">🔥 {s.streak}-day streak</span></div>
         <p style={{ marginTop: 18 }}><small>Left to spend this month</small></p>
         <div className="big">{money(s.left)}</div>
         <p style={{ marginTop: 8 }}><small>{s.perDay ? `≈ ${money(s.perDay)} a day for the rest of the month` : 'Add your income to see a daily allowance'}</small></p>
